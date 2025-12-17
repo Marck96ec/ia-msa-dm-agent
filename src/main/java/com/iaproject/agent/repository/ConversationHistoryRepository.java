@@ -25,6 +25,15 @@ public interface ConversationHistoryRepository extends JpaRepository<Conversatio
     List<ConversationHistory> findByConversationIdOrderByCreatedAtAsc(String conversationId);
 
     /**
+     * Encuentra todas las conversaciones por ID de conversación ordenadas por fecha descendente.
+     * Útil para cargar el historial más reciente primero.
+     *
+     * @param conversationId ID de la conversación
+     * @return lista de historiales de conversación (más reciente primero)
+     */
+    List<ConversationHistory> findByConversationIdOrderByCreatedAtDesc(String conversationId);
+
+    /**
      * Encuentra conversaciones creadas después de una fecha específica.
      *
      * @param date fecha de inicio

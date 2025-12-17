@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <!-- Configuración para ambiente de desarrollo (consola con JSON) -->
+    <springProfile name="default,dev">
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- Campos personalizados -->
+                <customFields>{"application":"ia-msa-dm-agent","environment":"${spring.profiles.active:-default}"}</customFields>
+                
+                <!-- Configuración de timestamp -->
+                <timeZone>UTC</timeZone>
+                <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS'Z'</timestampPattern>
+                
+                <!-- Incluir información de stack trace -->
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                    <maxLength>2048</maxLength>
+                    <shortenedClassNameLength>20</shortenedClassNameLength>
+                    <exclude>^sun\.reflect\..*\.invoke</exclude>
+                    <exclude>^net\.sf\.cglib\.proxy\.MethodProxy\.invoke</exclude>
+                    <rootCauseFirst>true</rootCauseFirst>
+                </throwableConverter>
+                
+                <!-- Incluir MDC (Mapped Diagnostic Context) -->
+                <includeMdc>true</includeMdc>
+                
+                <!-- Incluir nombre del logger -->
+                <includeContext>true</includeContext>
+                
+                <!-- Incluir nombre del thread -->
+                <fieldNames>
+                    <timestamp>timestamp</timestamp>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                    <thread>thread</thread>
+                    <logger>logger</logger>
+                    <message>message</message>
+                    <stackTrace>stackTrace</stackTrace>
+                </fieldNames>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+        
+        <!-- Niveles específicos para paquetes de la aplicación -->
+        <logger name="com.iaproject.agent" level="DEBUG"/>
+        <logger name="org.springframework.ai" level="DEBUG"/>
+        <logger name="org.flywaydb" level="INFO"/>
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="org.springframework.web" level="INFO"/>
+    </springProfile>
+    
+    <!-- Configuración para producción (JSON optimizado) -->
+    <springProfile name="prod">
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"application":"ia-msa-dm-agent","environment":"production"}</customFields>
+                <timeZone>UTC</timeZone>
+                <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS'Z'</timestampPattern>
+                <includeMdc>true</includeMdc>
+                <includeContext>false</includeContext>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+        
+        <logger name="com.iaproject.agent" level="INFO"/>
+        <logger name="org.springframework.ai" level="WARN"/>
+    </springProfile>
+</configuration>

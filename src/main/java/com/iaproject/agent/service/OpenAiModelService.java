@@ -25,7 +25,7 @@ public class OpenAiModelService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${spring.ai.openai.api-key}")
+    @Value("${spring.ai.openai.api-key:dummy-key}")
     private String apiKey;
 
     @Value("${spring.ai.openai.organization-id:#{null}}")

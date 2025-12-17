@@ -70,6 +70,38 @@ paths:
                       promptTokens: 15
                       completionTokens: 120
                       totalTokens: 135
+                    userId: "+593991234567"
+                    userProfile:
+                      userId: "+593991234567"
+                      preferredLanguage: "es-EC"
+                      tone: "WARM"
+                      verbosity: "MEDIUM"
+                      emojiPreference: "LIGHT"
+                    guardrailAction: "ALLOW"
+                    guardrailReason: "NONE"
+                    quickReplies:
+                      - "Cuéntame más"
+                      - "Dame un ejemplo"
+                      - "¿Qué más puedes hacer?"
+                blocked:
+                  summary: Mensaje bloqueado por guardrails
+                  value:
+                    response: "Tu mensaje es demasiado largo (850 caracteres). Por favor, envía un mensaje de máximo 800 caracteres."
+                    conversationId: "conv-abc-124"
+                    timestamp: "2025-12-17T10:32:00"
+                    userId: "anon-550e8400-e29b-41d4-a716-446655440000"
+                    userProfile:
+                      userId: "anon-550e8400-e29b-41d4-a716-446655440000"
+                      preferredLanguage: "es-EC"
+                      tone: "WARM"
+                      verbosity: "MEDIUM"
+                      emojiPreference: "LIGHT"
+                    guardrailAction: "BLOCK"
+                    guardrailReason: "TOO_LONG"
+                    quickReplies:
+                      - "Resumir mi pregunta"
+                      - "Dividir en partes"
+                      - "Ayuda"
         '400':
           description: Error de validación en la solicitud
           content:
@@ -230,6 +262,33 @@ components:
           minimum: 1
           maximum: 4000
           example: 2000
+        metadata:
+          type: object
+          description: Metadatos adicionales para contexto y personalización
+          properties:
+            userId:
+              type: string
+              description: |
+                ID único del usuario (phone, sessionId, etc.). 
+                Si no se proporciona, se genera un anonymousId.
+              example: "+593991234567"
+            domainId:
+              type: string
+              description: ID del dominio o categoría (ej. "baby-shower", "wedding")
+              example: "baby-shower"
+            eventId:
+              type: string
+              description: ID del evento específico (más granular que domainId)
+              example: "baby-shower-123"
+            mode:
+              type: string
+              description: Modo de operación (ej. "EVENT" para validación de alcance)
+              enum: [GENERAL, EVENT]
+              example: "EVENT"
+          example:
+            userId: "+593991234567"
+            domainId: "baby-shower"
+            mode: "EVENT"
 
     ChatResponse:
       type: object
@@ -253,6 +312,28 @@ components:
           example: "2025-12-17T10:30:00"
         tokenUsage:
           $ref: '#/components/schemas/TokenUsage'
+        userId:
+          type: string
+          description: ID del usuario (incluido si se generó anonymousId)
+          example: "anon-550e8400-e29b-41d4-a716-446655440000"
+        userProfile:
+          $ref: '#/components/schemas/UserProfileDto'
+        guardrailAction:
+          type: string
+          description: Acción de guardrail aplicada
+          enum: [ALLOW, BLOCK, REDIRECT]
+          example: "ALLOW"
+        guardrailReason:
+          type: string
+          description: Razón de la acción de guardrail
+          enum: [NONE, TOO_LONG, INJECTION, OUT_OF_SCOPE, UNSAFE]
+          example: "NONE"
+        quickReplies:
+          type: array
+          description: Sugerencias de respuestas rápidas para el usuario
+          items:
+            type: string
+          example: ["Ideas para juegos", "Lista de invitados", "Decoración"]
 
     TokenUsage:
       type: object
@@ -273,6 +354,34 @@ components:
           format: int32
           description: Total de tokens utilizados (prompt + completion)
           example: 135
+
+    UserProfileDto:
+      type: object
+      description: Perfil conversacional del usuario (solo campos públicos)
+      properties:
+        userId:
+          type: string
+          description: ID único del usuario
+          example: "+593991234567"
+        preferredLanguage:
+          type: string
+          description: Idioma preferido
+          example: "es-EC"
+        tone:
+          type: string
+          description: Tono conversacional
+          enum: [WARM, NEUTRAL, FORMAL, FUNNY]
+          example: "WARM"
+        verbosity:
+          type: string
+          description: Nivel de detalle en respuestas
+          enum: [SHORT, MEDIUM, DETAILED]
+          example: "MEDIUM"
+        emojiPreference:
+          type: string
+          description: Preferencia de uso de emojis
+          enum: [NONE, LIGHT, HEAVY]
+          example: "LIGHT"
 
     ErrorResponse:
       type: object

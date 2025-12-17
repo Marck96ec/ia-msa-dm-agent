@@ -44,6 +44,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'org.postgresql:postgresql'
 	
+	// Flyway para migraciones de base de datos
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	
+	// Hypersistence Utils para soporte JSONB en Hibernate
+	implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.0'
+	
 	// Spring AI OpenAI (versión explícita)
 	implementation "org.springframework.ai:spring-ai-openai-spring-boot-starter:${springAiVersion}"
 	
@@ -56,6 +63,12 @@ dependencies {
 	
 	// Actuator para health checks y métricas
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	
+	// Cache support (para AllowedDomainService)
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	
+	// JSON logging
+	implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
 	
 	// Testing
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

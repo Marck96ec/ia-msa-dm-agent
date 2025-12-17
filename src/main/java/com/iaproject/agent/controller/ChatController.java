@@ -4,6 +4,7 @@ import com.iaproject.agent.api.ChatApi;
 import com.iaproject.agent.model.ChatRequest;
 import com.iaproject.agent.model.ChatResponse;
 import com.iaproject.agent.model.ModelsResponse;
+import com.iaproject.agent.service.ChatOrchestratorService;
 import com.iaproject.agent.service.ChatService;
 import com.iaproject.agent.service.OpenAiModelService;
 import lombok.RequiredArgsConstructor;
@@ -15,39 +16,55 @@ import org.springframework.web.bind.annotation.RestController;
  * Implementación del controlador REST para operaciones de chat con IA.
  * Implementa la interfaz generada a partir de la especificación OpenAPI (API-First).
  * Expone endpoints para interactuar con modelos de lenguaje.
+ * 
+ * IMPORTANTE: Este controller NO contiene lógica de negocio.
+ * Toda la orquestación se delega a ChatOrchestratorService.
  */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 public class ChatController implements ChatApi {
 
-    private final ChatService chatService;
+    private final ChatOrchestratorService chatOrchestratorService;
+    private final ChatService chatService; // Mantener para compatibilidad con simpleChat
     private final OpenAiModelService openAiModelService;
 
     /**
      * Procesa un mensaje y devuelve la respuesta del modelo de IA.
      * Implementa el endpoint POST /api/v1/chat definido en la especificación OpenAPI.
+     * 
+     * Flujo completo:
+     * - Validación de guardrails (pre-IA)
+     * - Carga de perfil de usuario
+     * - Construcción de prompt con personalización
+     * - Llamada a Spring AI (solo si guardrails permiten)
+     * - Persistencia con metadatos completos
+     * - Inferencia y actualización de perfil
      *
      * @param chatRequest solicitud con el mensaje del usuario
-     * @return respuesta del modelo con metadatos
+     * @return respuesta del modelo con metadatos completos (perfil, guardrails, quickReplies)
      */
     @Override
     public ResponseEntity<ChatResponse> chat(ChatRequest chatRequest) {
-        log.info("Recibida solicitud de chat");
-        ChatResponse response = chatService.processMessage(chatRequest);
+        log.info("📨 Recibida solicitud de chat");
+        ChatResponse response = chatOrchestratorService.processMessage(chatRequest);
+        log.info("✅ Solicitud procesada exitosamente");
         return ResponseEntity.ok(response);
     }
 
     /**
      * Endpoint simple para mensajes rápidos sin configuración adicional.
      * Implementa el endpoint GET /api/v1/chat/simple definido en la especificación OpenAPI.
+     * 
+     * Nota: Este endpoint NO usa guardrails ni personalización.
+     * Se mantiene para compatibilidad y casos de uso simples.
      *
      * @param message mensaje del usuario
      * @return respuesta del modelo como texto plano
      */
     @Override
     public ResponseEntity<String> simpleChat(String message) {
-        log.info("Recibida solicitud de chat simple: {}", message);
+        log.info("📨 Recibida solicitud de chat simple: {}", message);
         String response = chatService.processMessageStream(message);
         return ResponseEntity.ok(response);
     }
@@ -60,9 +77,9 @@ public class ChatController implements ChatApi {
      */
     @Override
     public ResponseEntity<ModelsResponse> getAvailableModels() {
-        log.info("Recibida solicitud para obtener modelos disponibles");
+        log.info("📋 Recibida solicitud para obtener modelos disponibles");
         ModelsResponse response = openAiModelService.getAvailableModels();
-        log.info("Devolviendo {} modelos disponibles", response.getTotalModels());
+        log.info("✅ Devolviendo {} modelos disponibles", response.getTotalModels());
         return ResponseEntity.ok(response);
     }
 }
