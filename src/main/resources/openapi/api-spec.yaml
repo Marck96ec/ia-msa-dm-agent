@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: IA MSA DM Agent API
+  description: |
+    API REST para integración con modelos de IA mediante Spring AI.
+    Proporciona endpoints para interactuar con modelos de lenguaje (LLM) como GPT-4, Azure OpenAI y Ollama.
+  version: 1.0.0
+  contact:
+    name: IA Project Team
+    email: support@iaproject.com
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor de desarrollo local
+  - url: https://api.iaproject.com
+    description: Servidor de producción
+
+tags:
+  - name: Chat
+    description: Operaciones de chat con modelos de IA
+
+paths:
+  /api/v1/chat:
+    post:
+      tags:
+        - Chat
+      summary: Procesar mensaje de chat
+      description: |
+        Envía un mensaje al modelo de IA y devuelve la respuesta generada.
+        Soporta configuración de temperatura, tokens máximos y manejo de conversaciones.
+      operationId: chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simple:
+                summary: Mensaje simple
+                value:
+                  message: "Explícame qué es Spring AI"
+              withConfig:
+                summary: Mensaje con configuración
+                value:
+                  message: "Genera un poema sobre programación"
+                  temperature: 0.9
+                  maxTokens: 500
+              withConversation:
+                summary: Mensaje en conversación existente
+                value:
+                  message: "¿Puedes darme un ejemplo?"
+                  conversationId: "conv-123"
+                  temperature: 0.7
+      responses:
+        '200':
+          description: Respuesta exitosa del modelo de IA
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                success:
+                  summary: Respuesta exitosa
+                  value:
+                    response: "Spring AI es un framework de Spring que facilita la integración..."
+                    conversationId: "conv-abc-123"
+                    timestamp: "2025-12-17T10:30:00"
+                    tokenUsage:
+                      promptTokens: 15
+                      completionTokens: 120
+                      totalTokens: 135
+        '400':
+          description: Error de validación en la solicitud
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Error de validación
+                  value:
+                    timestamp: "2025-12-17T10:30:00"
+                    status: 400
+                    errors:
+                      message: "El mensaje no puede estar vacío"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Error del servidor
+                  value:
+                    timestamp: "2025-12-17T10:30:00"
+                    status: 500
+                    message: "Error interno del servidor"
+                    details: "Error al procesar el mensaje con el modelo de IA"
+
+  /api/v1/chat/simple:
+    get:
+      tags:
+        - Chat
+      summary: Chat simple
+      description: |
+        Endpoint simplificado para mensajes rápidos sin configuración adicional.
+        Retorna la respuesta como texto plano.
+      operationId: simpleChat
+      parameters:
+        - name: message
+          in: query
+          required: true
+          description: Mensaje del usuario
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 2000
+          example: "Hola, ¿cómo estás?"
+      responses:
+        '200':
+          description: Respuesta exitosa del modelo
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "¡Hola! Estoy funcionando correctamente. ¿En qué puedo ayudarte hoy?"
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Mensaje o pregunta del usuario
+          minLength: 1
+          maxLength: 4000
+          example: "Explícame qué es Spring AI en 3 párrafos"
+        conversationId:
+          type: string
+          description: ID de conversación para mantener contexto entre mensajes
+          pattern: '^[a-zA-Z0-9\-_]+$'
+          example: "conv-123-abc"
+        temperature:
+          type: number
+          format: double
+          description: |
+            Controla la creatividad de las respuestas (0.0 - 2.0).
+            Valores bajos (0.1-0.3): respuestas más determinísticas y enfocadas.
+            Valores medios (0.7-0.9): balance entre creatividad y coherencia.
+            Valores altos (1.5-2.0): respuestas más creativas y variadas.
+          minimum: 0.0
+          maximum: 2.0
+          example: 0.7
+        maxTokens:
+          type: integer
+          format: int32
+          description: Límite máximo de tokens en la respuesta generada
+          minimum: 1
+          maximum: 4000
+          example: 2000
+
+    ChatResponse:
+      type: object
+      required:
+        - response
+        - conversationId
+        - timestamp
+      properties:
+        response:
+          type: string
+          description: Respuesta generada por el modelo de IA
+          example: "Spring AI es un framework de Spring diseñado específicamente..."
+        conversationId:
+          type: string
+          description: ID de la conversación
+          example: "conv-abc-123"
+        timestamp:
+          type: string
+          format: date-time
+          description: Marca de tiempo de la respuesta
+          example: "2025-12-17T10:30:00"
+        tokenUsage:
+          $ref: '#/components/schemas/TokenUsage'
+
+    TokenUsage:
+      type: object
+      description: Información sobre el uso de tokens en la solicitud
+      properties:
+        promptTokens:
+          type: integer
+          format: int32
+          description: Tokens utilizados en el prompt (entrada)
+          example: 15
+        completionTokens:
+          type: integer
+          format: int32
+          description: Tokens utilizados en la respuesta (salida)
+          example: 120
+        totalTokens:
+          type: integer
+          format: int32
+          description: Total de tokens utilizados (prompt + completion)
+          example: 135
+
+    ErrorResponse:
+      type: object
+      required:
+        - timestamp
+        - status
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Marca de tiempo del error
+          example: "2025-12-17T10:30:00"
+        status:
+          type: integer
+          format: int32
+          description: Código de estado HTTP
+          example: 400
+        message:
+          type: string
+          description: Mensaje descriptivo del error
+          example: "Error interno del servidor"
+        details:
+          type: string
+          description: Detalles adicionales del error
+          example: "Error al procesar el mensaje con el modelo de IA"
+        errors:
+          type: object
+          description: Mapa de errores de validación por campo
+          additionalProperties:
+            type: string
+          example:
+            message: "El mensaje no puede estar vacío"
