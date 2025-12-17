@@ -137,6 +137,50 @@ CREATE USER admin WITH ENCRYPTED PASSWORD 'admin123';
 GRANT ALL PRIVILEGES ON DATABASE mydb TO admin;
 ```
 
+#### 📊 Scripts SQL de Inicialización
+
+El proyecto incluye scripts SQL completos para configurar la base de datos:
+
+**1. Inicializar Base de Datos (init-database.sql)**
+
+```bash
+# Con Docker
+docker exec -i postgres-db psql -U postgres < src/main/resources/db/init-database.sql
+
+# Local
+psql -U postgres -f src/main/resources/db/init-database.sql
+```
+
+Crea la base de datos `mydb` y el usuario `admin` con privilegios.
+
+**2. Crear Schema (schema.sql)**
+
+```bash
+# Con Docker
+docker exec -i postgres-db psql -U admin -d mydb < src/main/resources/db/schema.sql
+
+# Local
+psql -U admin -d mydb -f src/main/resources/db/schema.sql
+```
+
+Crea:
+- ✅ Tabla `conversation_history` con constraints
+- ✅ 4 índices optimizados
+- ✅ Trigger automático para `updated_at`
+- ✅ Vistas analíticas
+
+**3. Datos de Ejemplo (opcional)**
+
+```bash
+# Con Docker
+docker exec -i postgres-db psql -U admin -d mydb < src/main/resources/db/seed-data.sql
+
+# Local
+psql -U admin -d mydb -f src/main/resources/db/seed-data.sql
+```
+
+📖 **Más información:** Ver [src/main/resources/db/README.md](src/main/resources/db/README.md)
+
 #### Conectar con pgAdmin
 
 1. Abrir pgAdmin
