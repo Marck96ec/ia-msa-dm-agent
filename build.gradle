@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.0'
 	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.openapi.generator' version '7.2.0'
 }
 
 group = 'com.iaproject'
@@ -33,6 +34,11 @@ dependencies {
 	
 	// Spring Boot Validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	// OpenAPI/Swagger - API First
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
 	
 	// Spring AI OpenAI
 	implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
@@ -66,4 +72,36 @@ dependencyManagement {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Configuración de OpenAPI Generator
+openApiGenerate {
+	generatorName = 'spring'
+	inputSpec = "$projectDir/src/main/resources/openapi/api-spec.yaml".toString()
+	outputDir = "$buildDir/generated".toString()
+	apiPackage = 'com.iaproject.agent.api'
+	modelPackage = 'com.iaproject.agent.model'
+	configOptions = [
+		interfaceOnly: 'true',
+		useSpringBoot3: 'true',
+		useTags: 'true',
+		skipDefaultInterface: 'true',
+		documentationProvider: 'springdoc',
+		openApiNullable: 'false',
+		useJakartaEe: 'true'
+	]
+}
+
+// Configurar directorios de código generado
+sourceSets {
+	main {
+		java {
+			srcDir "${buildDir}/generated/src/main/java"
+		}
+	}
+}
+
+// Asegurar que el código se genera antes de compilar
+tasks.named('compileJava') {
+	dependsOn tasks.openApiGenerate
 }
