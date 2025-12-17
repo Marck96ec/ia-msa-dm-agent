@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ia-msa-dm-agent
+
+  # Configuración de Spring AI para OpenAI
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.7
+          max-tokens: 2000
+
+    # Configuración alternativa para Azure OpenAI
+    azure:
+      openai:
+        api-key: ${AZURE_OPENAI_API_KEY:}
+        endpoint: ${AZURE_OPENAI_ENDPOINT:}
+        chat:
+          options:
+            deployment-name: ${AZURE_OPENAI_DEPLOYMENT_NAME:gpt-4}
+            temperature: 0.7
+            max-tokens: 2000
+
+    # Configuración para Ollama (modelos locales)
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_MODEL:llama2}
+          temperature: 0.7
+
+# Actuator para health checks y métricas
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.iaproject.agent: DEBUG
+    org.springframework.ai: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
