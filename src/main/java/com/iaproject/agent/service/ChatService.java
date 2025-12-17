@@ -127,9 +127,10 @@ public class ChatService {
                     .build();
 
             conversationHistoryRepository.save(history);
-            log.debug("Historial de conversación guardado: {}", history.getId());
+            log.info("✅ Historial de conversación guardado exitosamente: ID={}, ConversationId={}", 
+                    history.getId(), history.getConversationId());
         } catch (Exception e) {
-            log.error("Error al guardar historial de conversación: {}", e.getMessage(), e);
+            log.error("❌ Error al guardar historial de conversación: {}", e.getMessage(), e);
             // No lanzar excepción para no interrumpir el flujo principal
         }
     }
