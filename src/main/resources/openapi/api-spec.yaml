@@ -139,6 +139,61 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/models:
+    get:
+      tags:
+        - Chat
+      summary: Listar modelos disponibles
+      description: |
+        Obtiene la lista de modelos de IA disponibles en OpenAI.
+        Requiere configuración válida de API Key, Organization ID y Project ID.
+      operationId: getAvailableModels
+      responses:
+        '200':
+          description: Lista de modelos disponibles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelsResponse'
+              examples:
+                success:
+                  summary: Modelos disponibles
+                  value:
+                    models:
+                      - id: "gpt-4o"
+                        object: "model"
+                        created: 1687882411
+                        ownedBy: "openai"
+                      - id: "gpt-4o-mini"
+                        object: "model"
+                        created: 1687882410
+                        ownedBy: "openai"
+                      - id: "gpt-4-turbo"
+                        object: "model"
+                        created: 1687882409
+                        ownedBy: "openai"
+                    totalModels: 3
+        '401':
+          description: Error de autenticación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                unauthorized:
+                  summary: API Key inválida
+                  value:
+                    timestamp: "2025-12-17T10:30:00"
+                    status: 401
+                    message: "Error de autenticación"
+                    details: "API Key, Organization ID o Project ID inválidos"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     ChatRequest:
@@ -250,3 +305,46 @@ components:
             type: string
           example:
             message: "El mensaje no puede estar vacío"
+
+    ModelsResponse:
+      type: object
+      required:
+        - models
+        - totalModels
+      properties:
+        models:
+          type: array
+          description: Lista de modelos de IA disponibles
+          items:
+            $ref: '#/components/schemas/ModelInfo'
+        totalModels:
+          type: integer
+          format: int32
+          description: Número total de modelos disponibles
+          example: 10
+
+    ModelInfo:
+      type: object
+      required:
+        - id
+        - object
+        - created
+        - ownedBy
+      properties:
+        id:
+          type: string
+          description: Identificador único del modelo
+          example: "gpt-4o-mini"
+        object:
+          type: string
+          description: Tipo de objeto (siempre "model")
+          example: "model"
+        created:
+          type: integer
+          format: int64
+          description: Timestamp de creación del modelo (Unix epoch)
+          example: 1687882411
+        ownedBy:
+          type: string
+          description: Propietario del modelo
+          example: "openai"

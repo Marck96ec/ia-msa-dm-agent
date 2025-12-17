@@ -214,9 +214,13 @@ DB_NAME=mydb
 DB_USERNAME=admin
 DB_PASSWORD=admin123
 
-# IA (al menos una)
+# OpenAI (requerido)
 OPENAI_API_KEY=sk-tu-api-key-real-aqui
+OPENAI_ORGANIZATION_ID=org-tu-organization-id
+OPENAI_PROJECT_ID=proj_tu-project-id
 ```
+
+> **Nota:** `OPENAI_ORGANIZATION_ID` y `OPENAI_PROJECT_ID` son opcionales pero recomendados para proyectos empresariales. Permiten gestionar cuotas y facturación por organización/proyecto.
 
 ### 3. Opciones de proveedor de IA
 
@@ -354,6 +358,49 @@ Swagger UI proporciona:
 **Endpoint:** `GET /api/v1/chat/simple?message=Hola`
 
 **Response:** Texto plano con la respuesta del modelo
+
+### 3. Listar modelos disponibles (GET)
+
+**Endpoint:** `GET /api/v1/models`
+
+**Descripción:** Obtiene la lista de modelos de IA disponibles en tu cuenta de OpenAI.
+
+**Headers requeridos (automáticos):**
+- `Authorization: Bearer ${OPENAI_API_KEY}`
+- `OpenAI-Organization: ${OPENAI_ORGANIZATION_ID}` (si está configurado)
+- `OpenAI-Project: ${OPENAI_PROJECT_ID}` (si está configurado)
+
+**Response:**
+```json
+{
+  "models": [
+    {
+      "id": "gpt-4o",
+      "object": "model",
+      "created": 1687882411,
+      "ownedBy": "openai"
+    },
+    {
+      "id": "gpt-4o-mini",
+      "object": "model",
+      "created": 1687882410,
+      "ownedBy": "openai"
+    },
+    {
+      "id": "gpt-4-turbo",
+      "object": "model",
+      "created": 1687882409,
+      "ownedBy": "openai"
+    }
+  ],
+  "totalModels": 3
+}
+```
+
+**Uso:**
+```bash
+curl http://localhost:8080/api/v1/models
+```
 
 ### 3. Health Check
 

@@ -3,7 +3,9 @@ package com.iaproject.agent.controller;
 import com.iaproject.agent.api.ChatApi;
 import com.iaproject.agent.model.ChatRequest;
 import com.iaproject.agent.model.ChatResponse;
+import com.iaproject.agent.model.ModelsResponse;
 import com.iaproject.agent.service.ChatService;
+import com.iaproject.agent.service.OpenAiModelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatController implements ChatApi {
 
     private final ChatService chatService;
+    private final OpenAiModelService openAiModelService;
 
     /**
      * Procesa un mensaje y devuelve la respuesta del modelo de IA.
@@ -46,6 +49,20 @@ public class ChatController implements ChatApi {
     public ResponseEntity<String> simpleChat(String message) {
         log.info("Recibida solicitud de chat simple: {}", message);
         String response = chatService.processMessageStream(message);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Obtiene la lista de modelos de IA disponibles en OpenAI.
+     * Implementa el endpoint GET /api/v1/models definido en la especificación OpenAPI.
+     *
+     * @return lista de modelos disponibles con sus metadatos
+     */
+    @Override
+    public ResponseEntity<ModelsResponse> getAvailableModels() {
+        log.info("Recibida solicitud para obtener modelos disponibles");
+        ModelsResponse response = openAiModelService.getAvailableModels();
+        log.info("Devolviendo {} modelos disponibles", response.getTotalModels());
         return ResponseEntity.ok(response);
     }
 }

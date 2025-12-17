@@ -8,7 +8,6 @@ import com.iaproject.agent.repository.ConversationHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatResponse as AiChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
@@ -46,41 +45,25 @@ public class ChatService {
                     ? request.getConversationId() 
                     : UUID.randomUUID().toString();
 
-            // Configurar opciones del chat si se proporcionan
-            ChatClient.ChatClientRequest chatClientRequest = chatClient
-                    .prompt()
-                    .user(request.getMessage());
-
-            // Aplicar configuraciones opcionales
-            if (request.getTemperature() != null || request.getMaxTokens() != null) {
-                OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder();
-                
-                if (request.getTemperature() != null) {
-                    optionsBuilder.temperature(request.getTemperature());
-                }
-                
-                if (request.getMaxTokens() != null) {
-                    optionsBuilder.maxTokens(request.getMaxTokens());
-                }
-                
-                chatClientRequest.options(optionsBuilder.build());
-            }
-
             // Ejecutar la llamada al modelo
-            AiChatResponse aiResponse = chatClientRequest.call().chatResponse();
+            org.springframework.ai.chat.model.ChatResponse aiResponse = chatClient
+                    .prompt()
+                    .user(request.getMessage())
+                    .call()
+                    .chatResponse();
 
             // Construir la respuesta usando el modelo generado
             ChatResponse response = new ChatResponse();
             response.setResponse(aiResponse.getResult().getOutput().getContent());
             response.setConversationId(conversationId);
-            response.setTimestamp(OffsetDateTime.now().toString());
+            response.setTimestamp(OffsetDateTime.now());
             response.setTokenUsage(buildTokenUsage(aiResponse));
 
-            log.info("Respuesta generada exitosamente. Tokens usados: {}", 
+            int totalTokens = response.getTokenUsage() != null ? response.getTokenUsage().getTotalTokens() : 0;
+            log.info("Respuesta generada exitosamente. Tokens usados: {}", totalTokens);
+
             // Guardar historial en base de datos
             saveConversationHistory(request, response);
-
-                    response.getTokenUsage() != null ? response.getTokenUsage().getTotalTokens() : 0);
 
             return response;
 
@@ -115,7 +98,7 @@ public class ChatService {
     /**
      * Construye el objeto de uso de tokens desde la respuesta de la IA.
      */
-    private TokenUsage buildTokenUsage(AiChatResponse aiResponse) {
+    private TokenUsage buildTokenUsage(org.springframework.ai.chat.model.ChatResponse aiResponse) {
         if (aiResponse.getMetadata() != null && aiResponse.getMetadata().getUsage() != null) {
             var usage = aiResponse.getMetadata().getUsage();
             TokenUsage tokenUsage = new TokenUsage();
@@ -123,6 +106,9 @@ public class ChatService {
             tokenUsage.setCompletionTokens(usage.getGenerationTokens().intValue());
             tokenUsage.setTotalTokens(usage.getTotalTokens().intValue());
             return tokenUsage;
+        }
+        return null;
+    }
 
     /**
      * Guarda el historial de conversación en la base de datos.
@@ -146,8 +132,5 @@ public class ChatService {
             log.error("Error al guardar historial de conversación: {}", e.getMessage(), e);
             // No lanzar excepción para no interrumpir el flujo principal
         }
-    }
-        }
-        return null;
     }
 }
