@@ -4,6 +4,22 @@
 
 **IA MSA DM Agent** es una API REST construida con Spring Boot 3.3.0 y **Spring AI 1.1.2** que facilita la integración de modelos de lenguaje (LLM) en aplicaciones Java empresariales.
 
+### 🎯 Enfoque API-First
+
+Este proyecto sigue el patrón **API-First**, donde:
+
+1. **La especificación OpenAPI es la fuente de verdad** (`src/main/resources/openapi/api-spec.yaml`)
+2. **Los modelos y controladores se generan automáticamente** mediante OpenAPI Generator
+3. **El contrato de la API se define antes del código**, garantizando consistencia
+4. **Documentación Swagger UI** disponible automáticamente en `/swagger-ui.html`
+
+**Beneficios:**
+- ✅ Contrato de API versionado y documentado
+- ✅ Generación automática de modelos con validación
+- ✅ Interfaces de controladores type-safe
+- ✅ Documentación siempre sincronizada con el código
+- ✅ Fácil integración con clientes (generación de SDKs)
+
 ### ¿Qué es Spring AI?
 
 **Spring AI** es un framework de Spring diseñado específicamente para simplificar el desarrollo de aplicaciones que integran Inteligencia Artificial. Proporciona:
@@ -38,21 +54,38 @@ Este proyecto es un **starter template** que te permite:
 
 ```
 ia-msa-dm-agent/
-├── src/main/java/com/iaproject/agent/
-│   ├── IaMsaDmAgentApplication.java    # Clase principal
-│   ├── config/
-│   │   └── SpringAiConfig.java         # Configuración de Spring AI
-│   ├── controller/
-│   │   ├── ChatController.java         # Endpoints REST
-│   │   └── GlobalExceptionHandler.java # Manejo de errores
-│   ├── service/
-│   │   └── ChatService.java            # Lógica de negocio
-│   └── dto/
-│       ├── ChatRequest.java            # DTOs de entrada
-│       └── ChatResponse.java           # DTOs de salida
-└── src/main/resources/
-    └── application.yml                 # Configuración
+├── src/main/
+│   ├── java/com/iaproject/agent/
+│   │   ├── IaMsaDmAgentApplication.java    # Clase principal
+│   │   ├── config/
+│   │   │   └── SpringAiConfig.java         # Configuración de Spring AI
+│   │   ├── controller/
+│   │   │   ├── ChatController.java         # Implementa ChatApi (generada)
+│   │   │   └── GlobalExceptionHandler.java # Manejo de errores
+│   │   └── service/
+│   │       └── ChatService.java            # Lógica de negocio
+│   └── resources/
+│       ├── openapi/
+│       │   └── api-spec.yaml               # ⭐ Especificación OpenAPI
+│       └── application.yml                 # Configuración
+├── build/generated/                        # Código generado (Git ignored)
+│   └── src/main/java/com/iaproject/agent/
+│       ├── api/ChatApi.java                # Interfaz generada
+│       └── model/                          # Modelos generados
+│           ├── ChatRequest.java
+│           ├── ChatResponse.java
+│           ├── TokenUsage.java
+│           └── ErrorResponse.java
+└── build.gradle                        # Configuración Gradle + OpenAPI Generator
 ```
+
+### Flujo API-First:
+
+1. **Diseñar API** → Editar `api-spec.yaml`
+2. **Generar código** → `./gradlew openApiGenerate`
+3. **Implementar** → Controladores implementan interfaces generadas
+4. **Compilar** → `./gradlew build` (genera código automáticamente)
+5. **Documentar** → Swagger UI en `/swagger-ui.html`
 
 ### Principios aplicados:
 
@@ -128,6 +161,18 @@ spring:
 
 ## 🔧 Ejecución
 
+### Generar código desde OpenAPI (opcional)
+
+```bash
+# Windows
+.\gradlew.bat openApiGenerate
+
+# Linux/Mac
+./gradlew openApiGenerate
+```
+
+**Nota:** El código se genera automáticamente al compilar.
+
 ### Con Gradle Wrapper (Recomendado)
 
 ```bash
@@ -151,6 +196,18 @@ java -jar build/libs/ia-msa-dm-agent-1.0.0.jar
 ```
 
 La aplicación estará disponible en `http://localhost:8080`
+
+### Acceder a Swagger UI
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+Swagger UI proporciona:
+- 📖 Documentación interactiva de la API
+- 🧪 Pruebas en vivo de endpoints
+- 📦 Esquemas de modelos
+- ✅ Validación de requests/responses
 
 ## 📡 Endpoints de la API
 
