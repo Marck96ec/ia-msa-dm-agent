@@ -62,8 +62,12 @@ ia-msa-dm-agent/
 │   │   ├── controller/
 │   │   │   ├── ChatController.java         # Implementa ChatApi (generada)
 │   │   │   └── GlobalExceptionHandler.java # Manejo de errores
-│   │   └── service/
-│   │       └── ChatService.java            # Lógica de negocio
+│   │   ├── service/
+│   │   │   └── ChatService.java            # Lógica de negocio + persistencia
+│   │   ├── domain/
+│   │   │   └── ConversationHistory.java    # Entidad JPA
+│   │   └── repository/
+│   │       └── ConversationHistoryRepository.java # Spring Data JPA
 │   └── resources/
 │       ├── openapi/
 │       │   └── api-spec.yaml               # ⭐ Especificación OpenAPI
@@ -100,21 +104,77 @@ ia-msa-dm-agent/
 
 - **Java 17** o superior
 - **Gradle 8.5+** (incluido Gradle Wrapper)
+- **PostgreSQL 14+** (o Docker para ejecutar PostgreSQL)
 - **API Key** de OpenAI, Azure OpenAI o Ollama instalado localmente
 
 ## ⚙️ Configuración
 
-### 1. Clonar y configurar variables de entorno
+### 1. Base de Datos PostgreSQL
+
+#### Opción A: Usando Docker (Recomendado)
+
+```bash
+# Crear y ejecutar contenedor PostgreSQL
+docker run --name postgres-db \
+  -e POSTGRES_USER=admin \
+  -e POSTGRES_PASSWORD=admin123 \
+  -e POSTGRES_DB=mydb \
+  -p 5432:5432 \
+  -d postgres:14-alpine
+
+# Verificar que está corriendo
+docker ps
+```
+
+#### Opción B: PostgreSQL instalado localmente
+
+1. Instalar PostgreSQL 14+
+2. Crear base de datos:
+
+```sql
+CREATE DATABASE mydb;
+CREATE USER admin WITH ENCRYPTED PASSWORD 'admin123';
+GRANT ALL PRIVILEGES ON DATABASE mydb TO admin;
+```
+
+#### Conectar con pgAdmin
+
+1. Abrir pgAdmin
+2. Click derecho en "Servers" → "Register" → "Server"
+3. **General** → Name: `postgres-db`
+4. **Connection**:
+   - Host: `postgres-db` (Docker) o `localhost` (local)
+   - Port: `5432`
+   - Database: `mydb`
+   - Username: `admin`
+   - Password: `admin123`
+
+### 2. Variables de entorno e IA
+
+#### Clonar y configurar variables
 
 ```bash
 # Copiar el archivo de ejemplo
 cp .env.example .env
 
-# Editar .env con tu API key
+# Editar .env con tus valores reales
+```
+
+**Variables requeridas:**
+
+```env
+# Base de datos
+DB_HOST=postgres-db
+DB_PORT=5432
+DB_NAME=mydb
+DB_USERNAME=admin
+DB_PASSWORD=admin123
+
+# IA (al menos una)
 OPENAI_API_KEY=sk-tu-api-key-real-aqui
 ```
 
-### 2. Opciones de proveedor de IA
+### 3. Opciones de proveedor de IA
 
 #### Opción A: OpenAI (Recomendado para empezar)
 
