@@ -1,7 +1,8 @@
 package com.iaproject.agent.service;
 
-import com.iaproject.agent.dto.ChatRequest;
-import com.iaproject.agent.dto.ChatResponse;
+import com.iaproject.agent.model.ChatRequest;
+import com.iaproject.agent.model.ChatResponse;
+import com.iaproject.agent.model.TokenUsage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -10,7 +11,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -62,16 +63,15 @@ public class ChatService {
             // Ejecutar la llamada al modelo
             AiChatResponse aiResponse = chatClientRequest.call().chatResponse();
 
-            // Construir la respuesta
-            ChatResponse response = ChatResponse.builder()
-                    .response(aiResponse.getResult().getOutput().getContent())
-                    .conversationId(conversationId)
-                    .timestamp(LocalDateTime.now())
-                    .tokenUsage(buildTokenUsage(aiResponse))
-                    .build();
+            // Construir la respuesta usando el modelo generado
+            ChatResponse response = new ChatResponse();
+            response.setResponse(aiResponse.getResult().getOutput().getContent());
+            response.setConversationId(conversationId);
+            response.setTimestamp(OffsetDateTime.now().toString());
+            response.setTokenUsage(buildTokenUsage(aiResponse));
 
             log.info("Respuesta generada exitosamente. Tokens usados: {}", 
-                    response.getTokenUsage().getTotalTokens());
+                    response.getTokenUsage() != null ? response.getTokenUsage().getTotalTokens() : 0);
 
             return response;
 
@@ -106,14 +106,14 @@ public class ChatService {
     /**
      * Construye el objeto de uso de tokens desde la respuesta de la IA.
      */
-    private ChatResponse.TokenUsage buildTokenUsage(AiChatResponse aiResponse) {
+    private TokenUsage buildTokenUsage(AiChatResponse aiResponse) {
         if (aiResponse.getMetadata() != null && aiResponse.getMetadata().getUsage() != null) {
             var usage = aiResponse.getMetadata().getUsage();
-            return ChatResponse.TokenUsage.builder()
-                    .promptTokens(usage.getPromptTokens().intValue())
-                    .completionTokens(usage.getGenerationTokens().intValue())
-                    .totalTokens(usage.getTotalTokens().intValue())
-                    .build();
+            TokenUsage tokenUsage = new TokenUsage();
+            tokenUsage.setPromptTokens(usage.getPromptTokens().intValue());
+            tokenUsage.setCompletionTokens(usage.getGenerationTokens().intValue());
+            tokenUsage.setTotalTokens(usage.getTotalTokens().intValue());
+            return tokenUsage;
         }
         return null;
     }

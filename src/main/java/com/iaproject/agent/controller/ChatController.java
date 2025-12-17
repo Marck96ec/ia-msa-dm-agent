@@ -1,48 +1,50 @@
 package com.iaproject.agent.controller;
 
-import com.iaproject.agent.dto.ChatRequest;
-import com.iaproject.agent.dto.ChatResponse;
+import com.iaproject.agent.api.ChatApi;
+import com.iaproject.agent.model.ChatRequest;
+import com.iaproject.agent.model.ChatResponse;
 import com.iaproject.agent.service.ChatService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controlador REST para operaciones de chat con IA.
+ * Implementación del controlador REST para operaciones de chat con IA.
+ * Implementa la interfaz generada a partir de la especificación OpenAPI (API-First).
  * Expone endpoints para interactuar con modelos de lenguaje.
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/chat")
 @RequiredArgsConstructor
-public class ChatController {
+public class ChatController implements ChatApi {
 
     private final ChatService chatService;
 
     /**
      * Procesa un mensaje y devuelve la respuesta del modelo de IA.
+     * Implementa el endpoint POST /api/v1/chat definido en la especificación OpenAPI.
      *
-     * @param request solicitud con el mensaje del usuario
+     * @param chatRequest solicitud con el mensaje del usuario
      * @return respuesta del modelo con metadatos
      */
-    @PostMapping
-    public ResponseEntity<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
+    @Override
+    public ResponseEntity<ChatResponse> chat(ChatRequest chatRequest) {
         log.info("Recibida solicitud de chat");
-        ChatResponse response = chatService.processMessage(request);
+        ChatResponse response = chatService.processMessage(chatRequest);
         return ResponseEntity.ok(response);
     }
 
     /**
      * Endpoint simple para mensajes rápidos sin configuración adicional.
+     * Implementa el endpoint GET /api/v1/chat/simple definido en la especificación OpenAPI.
      *
      * @param message mensaje del usuario
-     * @return respuesta del modelo
+     * @return respuesta del modelo como texto plano
      */
-    @GetMapping("/simple")
-    public ResponseEntity<String> simpleChat(@RequestParam String message) {
-        log.info("Recibida solicitud de chat simple");
+    @Override
+    public ResponseEntity<String> simpleChat(String message) {
+        log.info("Recibida solicitud de chat simple: {}", message);
         String response = chatService.processMessageStream(message);
         return ResponseEntity.ok(response);
     }
