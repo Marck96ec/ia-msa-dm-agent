@@ -1,8 +1,10 @@
 package com.iaproject.agent.service;
 
+import com.iaproject.agent.domain.ConversationHistory;
 import com.iaproject.agent.model.ChatRequest;
 import com.iaproject.agent.model.ChatResponse;
 import com.iaproject.agent.model.TokenUsage;
+import com.iaproject.agent.repository.ConversationHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -10,6 +12,7 @@ import org.springframework.ai.chat.model.ChatResponse as AiChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -24,13 +27,16 @@ import java.util.UUID;
 public class ChatService {
 
     private final ChatClient chatClient;
+    private final ConversationHistoryRepository conversationHistoryRepository;
 
     /**
      * Procesa un mensaje y devuelve la respuesta del modelo de IA.
+     * Guarda el historial de la conversación en la base de datos.
      *
      * @param request solicitud con el mensaje del usuario
      * @return respuesta del modelo con información de uso de tokens
      */
+    @Transactional
     public ChatResponse processMessage(ChatRequest request) {
         log.info("Procesando mensaje: {}", request.getMessage());
 
@@ -71,6 +77,9 @@ public class ChatService {
             response.setTokenUsage(buildTokenUsage(aiResponse));
 
             log.info("Respuesta generada exitosamente. Tokens usados: {}", 
+            // Guardar historial en base de datos
+            saveConversationHistory(request, response);
+
                     response.getTokenUsage() != null ? response.getTokenUsage().getTotalTokens() : 0);
 
             return response;
@@ -114,6 +123,30 @@ public class ChatService {
             tokenUsage.setCompletionTokens(usage.getGenerationTokens().intValue());
             tokenUsage.setTotalTokens(usage.getTotalTokens().intValue());
             return tokenUsage;
+
+    /**
+     * Guarda el historial de conversación en la base de datos.
+     */
+    private void saveConversationHistory(ChatRequest request, ChatResponse response) {
+        try {
+            ConversationHistory history = ConversationHistory.builder()
+                    .conversationId(response.getConversationId())
+                    .userMessage(request.getMessage())
+                    .aiResponse(response.getResponse())
+                    .modelUsed("gpt-4o-mini") // Obtener del contexto si es posible
+                    .temperature(request.getTemperature())
+                    .promptTokens(response.getTokenUsage() != null ? response.getTokenUsage().getPromptTokens() : null)
+                    .completionTokens(response.getTokenUsage() != null ? response.getTokenUsage().getCompletionTokens() : null)
+                    .totalTokens(response.getTokenUsage() != null ? response.getTokenUsage().getTotalTokens() : null)
+                    .build();
+
+            conversationHistoryRepository.save(history);
+            log.debug("Historial de conversación guardado: {}", history.getId());
+        } catch (Exception e) {
+            log.error("Error al guardar historial de conversación: {}", e.getMessage(), e);
+            // No lanzar excepción para no interrumpir el flujo principal
+        }
+    }
         }
         return null;
     }
