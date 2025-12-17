@@ -1,0 +1,69 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.0'
+	id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.iaproject'
+version = '1.0.0'
+
+java {
+	sourceCompatibility = '17'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+	maven { url 'https://repo.spring.io/snapshot' }
+}
+
+ext {
+	springAiVersion = '1.1.2'
+}
+
+dependencies {
+	// Spring Boot Web
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	
+	// Spring Boot Validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	// Spring AI OpenAI
+	implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+	
+	// Spring AI Azure OpenAI (alternativa)
+	implementation 'org.springframework.ai:spring-ai-azure-openai-spring-boot-starter'
+	
+	// Spring AI Ollama (para modelos locales)
+	implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter'
+	
+	// Lombok para reducir boilerplate
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	
+	// Spring Boot DevTools
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	
+	// Actuator para health checks y métricas
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	
+	// Testing
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
