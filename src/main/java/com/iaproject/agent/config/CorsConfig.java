@@ -1,19 +1,27 @@
 package com.iaproject.agent.config;
 
+import com.iaproject.agent.config.properties.AppCorsProperties;
+import java.util.Arrays;
+import java.util.List;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Configuración global de CORS para permitir peticiones desde el frontend.
  */
 @Configuration
+@EnableConfigurationProperties(AppCorsProperties.class)
 public class CorsConfig {
+
+    private final AppCorsProperties corsProperties;
+
+    public CorsConfig(AppCorsProperties corsProperties) {
+        this.corsProperties = corsProperties;
+    }
 
     @Bean
     public CorsFilter corsFilter() {
@@ -23,10 +31,11 @@ public class CorsConfig {
         config.setAllowCredentials(true);
         
         // Orígenes permitidos
-        config.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",
-            "http://127.0.0.1:*"
-        ));
+        List<String> allowedOrigins = corsProperties.getAllowedOriginPatterns();
+        if (allowedOrigins == null || allowedOrigins.isEmpty()) {
+            allowedOrigins = List.of("*");
+        }
+        config.setAllowedOriginPatterns(allowedOrigins);
         
         // Headers permitidos
         config.setAllowedHeaders(Arrays.asList(
