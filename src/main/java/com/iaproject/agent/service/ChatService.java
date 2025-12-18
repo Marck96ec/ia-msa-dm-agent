@@ -13,7 +13,7 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
@@ -56,7 +56,7 @@ public class ChatService {
             ChatResponse response = new ChatResponse();
             response.setResponse(aiResponse.getResult().getOutput().getContent());
             response.setConversationId(conversationId);
-            response.setTimestamp(OffsetDateTime.now());
+            response.setTimestamp(LocalDateTime.now());
             response.setTokenUsage(buildTokenUsage(aiResponse));
 
             int totalTokens = response.getTokenUsage() != null ? response.getTokenUsage().getTotalTokens() : 0;

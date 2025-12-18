@@ -18,6 +18,18 @@ servers:
 tags:
   - name: Chat
     description: Operaciones de chat con modelos de IA
+  - name: Events
+    description: Gestión de eventos (baby shower, cumpleaños, etc.)
+  - name: RSVP
+    description: Confirmaciones de asistencia a eventos
+  - name: Gifts
+    description: Gestión de regalos y lista de deseos
+  - name: Commitments
+    description: Compromisos de regalos (reservas y aportes)
+  - name: Ideas
+    description: Ideas de apoyo propuestas por invitados
+  - name: Baby Messages
+    description: Mensajes para el bebé
 
 paths:
   /api/v1/chat:
@@ -225,6 +237,665 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================================
+  # EVENTOS
+  # ============================================================================
+  
+  /api/v1/events/{slug}:
+    get:
+      tags:
+        - Events
+      summary: Obtener información pública de un evento
+      description: Obtiene datos básicos del evento por su slug único (usado en QR/links)
+      operationId: getEventBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Identificador único del evento
+          schema:
+            type: string
+          example: "baby-shower-maria-2025"
+      responses:
+        '200':
+          description: Información del evento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPublicResponse'
+        '404':
+          description: Evento no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/events:
+    post:
+      tags:
+        - Events
+      summary: Crear un nuevo evento
+      description: Crea un evento nuevo (organizador/admin)
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Evento creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPublicResponse'
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/events/{eventSlug}:
+    put:
+      tags:
+        - Events
+      summary: Actualizar un evento
+      description: Actualiza datos de un evento existente (organizador/admin)
+      operationId: updateEvent
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventRequest'
+      responses:
+        '200':
+          description: Evento actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPublicResponse'
+        '404':
+          description: Evento no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/events/{eventSlug}/dashboard:
+    get:
+      tags:
+        - Events
+      summary: Dashboard del evento
+      description: Resumen completo del evento con estadísticas (organizador)
+      operationId: getEventDashboard
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dashboard del evento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDashboardResponse'
+
+  # ============================================================================
+  # RSVPs
+  # ============================================================================
+
+  /api/v1/events/{eventSlug}/rsvp:
+    post:
+      tags:
+        - RSVP
+      summary: Registrar confirmación de asistencia
+      description: Crea o actualiza el RSVP de un invitado
+      operationId: createRSVP
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RSVPRequest'
+      responses:
+        '201':
+          description: RSVP registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RSVPResponse'
+
+  /api/v1/events/{eventSlug}/rsvp/{userId}:
+    get:
+      tags:
+        - RSVP
+      summary: Consultar RSVP de un usuario
+      description: Obtiene el RSVP de un usuario específico
+      operationId: getRSVP
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: RSVP del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RSVPResponse'
+        '404':
+          description: RSVP no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
+    put:
+      tags:
+        - RSVP
+      summary: Actualizar RSVP
+      description: Actualiza la confirmación de asistencia de un usuario
+      operationId: updateRSVP
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RSVPRequest'
+      responses:
+        '200':
+          description: RSVP actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RSVPResponse'
+
+  /api/v1/events/{eventSlug}/attendees:
+    get:
+      tags:
+        - RSVP
+      summary: Listar confirmados
+      description: Lista de invitados que confirmaron asistencia (status=YES)
+      operationId: getAttendees
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de confirmados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RSVPResponse'
+
+  /api/v1/events/{eventSlug}/rsvps:
+    get:
+      tags:
+        - RSVP
+      summary: Listar todos los RSVPs
+      description: Lista completa de RSVPs con resumen estadístico (organizador)
+      operationId: getAllRSVPs
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de RSVPs con resumen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RSVPListResponse'
+
+  # ============================================================================
+  # REGALOS
+  # ============================================================================
+
+  /api/v1/events/{eventSlug}/gifts:
+    get:
+      tags:
+        - Gifts
+      summary: Ver lista de regalos
+      description: Obtiene todos los regalos activos de un evento
+      operationId: getGiftsByEvent
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de regalos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GiftResponse'
+    
+    post:
+      tags:
+        - Gifts
+      summary: Crear regalo
+      description: Registra un nuevo regalo en la lista (organizador)
+      operationId: createGift
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGiftRequest'
+      responses:
+        '201':
+          description: Regalo creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftResponse'
+
+  /api/v1/events/{eventSlug}/gifts/summary:
+    get:
+      tags:
+        - Gifts
+      summary: Resumen de regalos
+      description: Estadísticas y resumen de regalos del evento (organizador)
+      operationId: getGiftSummary
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resumen de regalos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftSummaryResponse'
+
+  /api/v1/gifts/{giftId}:
+    get:
+      tags:
+        - Gifts
+      summary: Ver detalle de regalo
+      description: Obtiene información detallada de un regalo específico
+      operationId: getGiftById
+      parameters:
+        - name: giftId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Detalle del regalo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftResponse'
+        '404':
+          description: Regalo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
+    put:
+      tags:
+        - Gifts
+      summary: Actualizar regalo
+      description: Modifica datos de un regalo (organizador)
+      operationId: updateGift
+      parameters:
+        - name: giftId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGiftRequest'
+      responses:
+        '200':
+          description: Regalo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftResponse'
+    
+    delete:
+      tags:
+        - Gifts
+      summary: Eliminar regalo
+      description: Desactiva un regalo (organizador)
+      operationId: deleteGift
+      parameters:
+        - name: giftId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Regalo eliminado exitosamente
+
+  /api/v1/gifts/{giftId}/reserve:
+    post:
+      tags:
+        - Gifts
+      summary: Reservar regalo completo
+      description: Reserva un regalo en su totalidad
+      operationId: reserveGift
+      parameters:
+        - name: giftId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveGiftRequest'
+      responses:
+        '201':
+          description: Regalo reservado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitmentResponse'
+        '400':
+          description: Error (regalo ya reservado, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/gifts/{giftId}/contribute:
+    post:
+      tags:
+        - Gifts
+      summary: Aportar a regalo compartido
+      description: Realiza un aporte parcial a un regalo que permite split
+      operationId: contributeToGift
+      parameters:
+        - name: giftId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContributeGiftRequest'
+      responses:
+        '201':
+          description: Aporte registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitmentResponse'
+        '400':
+          description: Error (aporte excede precio, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================================
+  # COMPROMISOS
+  # ============================================================================
+
+  /api/v1/commitments/{token}:
+    get:
+      tags:
+        - Commitments
+      summary: Consultar compromiso
+      description: Obtiene información de un compromiso usando el token único
+      operationId: getCommitmentByToken
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Información del compromiso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitmentResponse'
+        '404':
+          description: Compromiso no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
+    delete:
+      tags:
+        - Commitments
+      summary: Cancelar compromiso
+      description: Cancela una reserva o aporte usando el token
+      operationId: cancelCommitment
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Compromiso cancelado exitosamente
+        '400':
+          description: Error (ya cancelado, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================================
+  # IDEAS
+  # ============================================================================
+
+  /api/v1/events/{eventSlug}/ideas:
+    post:
+      tags:
+        - Ideas
+      summary: Proponer idea de apoyo
+      description: Permite a invitados proponer ideas de colaboración
+      operationId: createIdea
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIdeaRequest'
+      responses:
+        '201':
+          description: Idea registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaResponse'
+    
+    get:
+      tags:
+        - Ideas
+      summary: Ver ideas propuestas
+      description: Lista todas las ideas del evento (organizador)
+      operationId: getIdeas
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de ideas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdeaResponse'
+
+  # ============================================================================
+  # MENSAJES PARA EL BEBÉ
+  # ============================================================================
+
+  /api/v1/events/{eventSlug}/baby-messages:
+    post:
+      tags:
+        - Baby Messages
+      summary: Enviar mensaje para el bebé
+      description: Permite a invitados dejar mensajes para el bebé
+      operationId: createBabyMessage
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBabyMessageRequest'
+      responses:
+        '201':
+          description: Mensaje creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BabyMessageResponse'
+    
+    get:
+      tags:
+        - Baby Messages
+      summary: Ver mensajes para el bebé
+      description: Lista mensajes publicados (o todos si includeUnpublished=true)
+      operationId: getBabyMessages
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeUnpublished
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de mensajes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BabyMessageResponse'
+
+  /api/v1/baby-messages/{messageId}:
+    patch:
+      tags:
+        - Baby Messages
+      summary: Moderar mensaje
+      description: Actualiza el estado de publicación de un mensaje (organizador)
+      operationId: updateBabyMessageStatus
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBabyMessageRequest'
+      responses:
+        '200':
+          description: Mensaje actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BabyMessageResponse'
 
 components:
   schemas:
@@ -457,3 +1128,533 @@ components:
           type: string
           description: Propietario del modelo
           example: "openai"
+
+    # ============================================================================
+    # SCHEMAS DE EVENTOS
+    # ============================================================================
+
+    EventPublicResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        eventDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        locationUrl:
+          type: string
+        welcomeMessage:
+          type: string
+        imageUrl:
+          type: string
+        allowSharedGifts:
+          type: boolean
+        allowBabyMessages:
+          type: boolean
+        allowIdeas:
+          type: boolean
+
+    CreateEventRequest:
+      type: object
+      required:
+        - slug
+        - name
+        - eventDate
+        - organizerUserId
+      properties:
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        eventDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        locationUrl:
+          type: string
+        welcomeMessage:
+          type: string
+        closingMessage:
+          type: string
+        chatbotInstructions:
+          type: string
+        maxAttendees:
+          type: integer
+        giftBudget:
+          type: number
+          format: double
+        organizerUserId:
+          type: string
+        organizerName:
+          type: string
+        organizerEmail:
+          type: string
+        organizerPhone:
+          type: string
+        allowSharedGifts:
+          type: boolean
+        allowBabyMessages:
+          type: boolean
+        allowIdeas:
+          type: boolean
+        imageUrl:
+          type: string
+
+    UpdateEventRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        eventDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        locationUrl:
+          type: string
+        welcomeMessage:
+          type: string
+        closingMessage:
+          type: string
+        chatbotInstructions:
+          type: string
+        isActive:
+          type: boolean
+        maxAttendees:
+          type: integer
+        giftBudget:
+          type: number
+          format: double
+        organizerName:
+          type: string
+        organizerEmail:
+          type: string
+        organizerPhone:
+          type: string
+        allowSharedGifts:
+          type: boolean
+        allowBabyMessages:
+          type: boolean
+        allowIdeas:
+          type: boolean
+        imageUrl:
+          type: string
+
+    EventDashboardResponse:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/EventPublicResponse'
+        rsvpSummary:
+          $ref: '#/components/schemas/RSVPSummary'
+        giftSummary:
+          $ref: '#/components/schemas/GiftSummaryResponse'
+        recentIdeas:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdeaResponse'
+        totalBabyMessages:
+          type: integer
+          format: int64
+        totalAttendees:
+          type: integer
+          format: int64
+        pendingRSVPs:
+          type: integer
+          format: int64
+
+    # ============================================================================
+    # SCHEMAS DE RSVP
+    # ============================================================================
+
+    RSVPRequest:
+      type: object
+      required:
+        - userId
+        - status
+      properties:
+        userId:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        status:
+          type: string
+          enum: [CONFIRMED, DECLINED, PENDING]
+        guestsCount:
+          type: integer
+        notes:
+          type: string
+
+    RSVPResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        eventId:
+          type: integer
+          format: int64
+        userId:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        status:
+          type: string
+          enum: [CONFIRMED, DECLINED, PENDING]
+        guestsCount:
+          type: integer
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RSVPListResponse:
+      type: object
+      properties:
+        rsvps:
+          type: array
+          items:
+            $ref: '#/components/schemas/RSVPResponse'
+        summary:
+          $ref: '#/components/schemas/RSVPSummary'
+
+    RSVPSummary:
+      type: object
+      properties:
+        totalYes:
+          type: integer
+          format: int64
+        totalNo:
+          type: integer
+          format: int64
+        totalPending:
+          type: integer
+          format: int64
+        totalGuests:
+          type: integer
+          format: int64
+
+    # ============================================================================
+    # SCHEMAS DE REGALOS
+    # ============================================================================
+
+    CreateGiftRequest:
+      type: object
+      required:
+        - name
+        - price
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        imageUrl:
+          type: string
+        allowSplit:
+          type: boolean
+        priority:
+          type: integer
+        quantity:
+          type: integer
+        purchaseUrl:
+          type: string
+
+    UpdateGiftRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        imageUrl:
+          type: string
+        allowSplit:
+          type: boolean
+        priority:
+          type: integer
+        isActive:
+          type: boolean
+        quantity:
+          type: integer
+        purchaseUrl:
+          type: string
+
+    GiftResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        eventId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        imageUrl:
+          type: string
+        allowSplit:
+          type: boolean
+        priority:
+          type: integer
+        status:
+          type: string
+          enum: [AVAILABLE, RESERVED, PARTIALLY_FUNDED, FULLY_FUNDED, INACTIVE]
+        isActive:
+          type: boolean
+        quantity:
+          type: integer
+        purchaseUrl:
+          type: string
+        currentFunding:
+          type: number
+          format: double
+        fundingPercentage:
+          type: number
+          format: double
+        commitmentCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    GiftSummaryResponse:
+      type: object
+      properties:
+        totalGifts:
+          type: integer
+          format: int64
+        availableGifts:
+          type: integer
+          format: int64
+        reservedGifts:
+          type: integer
+          format: int64
+        partiallyFundedGifts:
+          type: integer
+          format: int64
+        fullyFundedGifts:
+          type: integer
+          format: int64
+        totalBudget:
+          type: number
+          format: double
+        coveredBudget:
+          type: number
+          format: double
+        remainingBudget:
+          type: number
+          format: double
+        coveragePercentage:
+          type: number
+          format: double
+
+    ReserveGiftRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        notes:
+          type: string
+
+    ContributeGiftRequest:
+      type: object
+      required:
+        - userId
+        - contributionAmount
+      properties:
+        userId:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        contributionAmount:
+          type: number
+          format: double
+          minimum: 0.01
+        notes:
+          type: string
+
+    # ============================================================================
+    # SCHEMAS DE COMPROMISOS
+    # ============================================================================
+
+    CommitmentResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        giftId:
+          type: integer
+          format: int64
+        giftName:
+          type: string
+        userId:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        commitmentType:
+          type: string
+          enum: [FULL_RESERVATION, PARTIAL_CONTRIBUTION]
+        contributionAmount:
+          type: number
+          format: double
+        token:
+          type: string
+        isActive:
+          type: boolean
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        cancelledAt:
+          type: string
+          format: date-time
+
+    # ============================================================================
+    # SCHEMAS DE IDEAS
+    # ============================================================================
+
+    CreateIdeaRequest:
+      type: object
+      required:
+        - userId
+        - description
+      properties:
+        userId:
+          type: string
+        guestName:
+          type: string
+        description:
+          type: string
+
+    IdeaResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        eventId:
+          type: integer
+          format: int64
+        userId:
+          type: string
+        guestName:
+          type: string
+        description:
+          type: string
+        isApproved:
+          type: boolean
+        organizerComment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    # ============================================================================
+    # SCHEMAS DE MENSAJES PARA EL BEBÉ
+    # ============================================================================
+
+    CreateBabyMessageRequest:
+      type: object
+      required:
+        - userId
+        - messageText
+      properties:
+        userId:
+          type: string
+        guestName:
+          type: string
+        messageText:
+          type: string
+        audioUrl:
+          type: string
+
+    BabyMessageResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        eventId:
+          type: integer
+          format: int64
+        userId:
+          type: string
+        guestName:
+          type: string
+        messageText:
+          type: string
+        audioUrl:
+          type: string
+        isPublished:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    UpdateBabyMessageRequest:
+      type: object
+      properties:
+        isPublished:
+          type: boolean

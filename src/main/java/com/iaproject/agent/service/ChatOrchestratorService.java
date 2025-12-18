@@ -19,7 +19,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -127,7 +127,7 @@ public class ChatOrchestratorService {
         ChatResponse response = new ChatResponse();
         response.setResponse(aiContent);
         response.setConversationId(conversationId);
-        response.setTimestamp(OffsetDateTime.now());
+        response.setTimestamp(LocalDateTime.now());
         response.setTokenUsage(buildTokenUsage(aiResponse));
         
         // Agregar nuevos campos
@@ -382,7 +382,7 @@ public class ChatOrchestratorService {
         ChatResponse response = new ChatResponse();
         response.setResponse(guardrailResult.getPredefinedResponse());
         response.setConversationId(conversationId);
-        response.setTimestamp(OffsetDateTime.now());
+        response.setTimestamp(LocalDateTime.now());
         response.setTokenUsage(null); // No se usaron tokens
 
         response.setUserProfile(UserProfileMapper.toDto(profile));

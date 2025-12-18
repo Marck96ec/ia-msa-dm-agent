@@ -99,7 +99,15 @@ openApiGenerate {
 		skipDefaultInterface: 'true',
 		documentationProvider: 'springdoc',
 		openApiNullable: 'false',
-		useJakartaEe: 'true'
+		useJakartaEe: 'true',
+		dateLibrary: 'java8-localdatetime'
+	]
+	typeMappings = [
+		DateTime: 'LocalDateTime',
+		'date-time': 'LocalDateTime'
+	]
+	importMappings = [
+		LocalDateTime: 'java.time.LocalDateTime'
 	]
 }
 

@@ -43,9 +43,9 @@ spring:
   # Configuración de Spring AI para OpenAI
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY}
-      organization-id: ${OPENAI_ORGANIZATION_ID}
-      project-id: ${OPENAI_PROJECT_ID}
+      api-key: ${OPENAI_API_KEY:}
+      organization-id: ${OPENAI_ORGANIZATION_ID:}
+      project-id: ${OPENAI_PROJECT_ID:}
       chat:
         options:
           model: gpt-4o-mini
