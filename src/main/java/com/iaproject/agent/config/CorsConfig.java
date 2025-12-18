@@ -53,7 +53,8 @@ public class CorsConfig {
             "Accept",
             "Authorization",
             "X-Requested-With",
-            "X-User-Id"
+            "X-User-Id",
+            "X-Conversation-Id"
         ));
         
         // Métodos HTTP permitidos
@@ -69,7 +70,9 @@ public class CorsConfig {
         // Headers expuestos al cliente
         config.setExposedHeaders(Arrays.asList(
             "Authorization",
-            "Content-Disposition"
+            "Content-Disposition",
+            "X-User-Id",
+            "X-Conversation-Id"
         ));
         
         // Tiempo de cache para preflight requests (1 hora)
