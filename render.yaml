@@ -1,7 +1,7 @@
 services:
   - type: web
     name: ia-msa-dm-agent
-    env: java
-    buildCommand: ./gradlew clean build -x test
-    startCommand: java -Dserver.port=$PORT -jar build/libs/*.jar
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /actuator/health
