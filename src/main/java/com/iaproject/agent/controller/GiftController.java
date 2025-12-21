@@ -48,6 +48,13 @@ public class GiftController implements GiftsApi {
     }
 
     @Override
+    public ResponseEntity<GiftReservationReportResponse> getGiftReservationReport(String eventSlug) {
+        log.info("GET /api/v1/events/{}/gifts/reservations/report", eventSlug);
+        com.iaproject.agent.service.dto.GiftReservationReportResponse dto = giftService.getGiftReservationReport(eventSlug);
+        return ResponseEntity.ok(mapper.toModel(dto));
+    }
+
+    @Override
     public ResponseEntity<GiftResponse> getGiftById(Long giftId) {
         log.info("GET /api/v1/gifts/{}", giftId);
         com.iaproject.agent.service.dto.GiftResponse dto = giftService.getGiftById(giftId);

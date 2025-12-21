@@ -2,14 +2,14 @@ package com.iaproject.agent.repository;
 
 import com.iaproject.agent.domain.Gift;
 import com.iaproject.agent.domain.GiftCommitment;
+import com.iaproject.agent.domain.enums.GiftStatus;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Repositorio para gestionar compromisos de regalos (reservas y aportes).
@@ -70,4 +70,21 @@ public interface GiftCommitmentRepository extends JpaRepository<GiftCommitment, 
      * @return cantidad de compromisos activos
      */
     long countByGiftAndIsActiveTrue(Gift gift);
+
+    /**
+     * Obtiene compromisos activos para regalos con estado reservado o completado en un evento.
+     *
+     * @param eventSlug slug del evento
+     * @param statuses lista de estados de regalo a incluir
+     * @return compromisos activos que cumplen la condiciA3n
+     */
+    @Query("SELECT gc FROM GiftCommitment gc " +
+           "JOIN gc.gift g " +
+           "JOIN g.event e " +
+           "WHERE gc.isActive = true " +
+           "AND e.slug = :eventSlug " +
+           "AND g.status IN :statuses")
+    List<GiftCommitment> findActiveByEventSlugAndGiftStatusIn(
+            @Param("eventSlug") String eventSlug,
+            @Param("statuses") List<GiftStatus> statuses);
 }

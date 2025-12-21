@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -281,6 +282,30 @@ public class GiftService {
     }
 
     /**
+     * Obtiene un reporte de compromisos para regalos reservados o completados.
+     */
+    @Transactional(readOnly = true)
+    public GiftReservationReportResponse getGiftReservationReport(String eventSlug) {
+        Event event = eventService.getEventEntityBySlug(eventSlug);
+        List<GiftStatus> statuses = List.of(GiftStatus.RESERVED, GiftStatus.FULLY_FUNDED);
+        List<GiftCommitment> commitments = commitmentRepository
+                .findActiveByEventSlugAndGiftStatusIn(event.getSlug(), statuses);
+
+        List<GiftReservationReportItem> items = commitments.stream()
+                .map(this::toReservationReportItem)
+                .collect(Collectors.toList());
+
+        return GiftReservationReportResponse.builder()
+                .eventId(event.getId())
+                .eventSlug(event.getSlug())
+                .eventName(event.getName())
+                .totalRecords(items.size())
+                .generatedAt(LocalDateTime.now())
+                .items(items)
+                .build();
+    }
+
+    /**
      * Actualiza el estado de un regalo según sus commitments.
      */
     private void updateGiftStatus(Gift gift) {
@@ -310,5 +335,21 @@ public class GiftService {
         Integer commitmentCount = (int) commitmentRepository.countByGiftAndIsActiveTrue(gift);
         
         return eventMapper.toGiftResponse(gift, currentFunding, commitmentCount);
+    }
+
+    private GiftReservationReportItem toReservationReportItem(GiftCommitment commitment) {
+        return GiftReservationReportItem.builder()
+                .giftId(commitment.getGift().getId())
+                .giftName(commitment.getGift().getName())
+                .giftStatus(commitment.getGift().getStatus())
+                .commitmentType(commitment.getCommitmentType())
+                .reserverUserId(commitment.getUserId())
+                .reserverName(commitment.getGuestName())
+                .reserverEmail(commitment.getGuestEmail())
+                .reserverPhone(commitment.getGuestPhone())
+                .contributionAmount(commitment.getContributionAmount())
+                .notes(commitment.getNotes())
+                .reservedAt(commitment.getCreatedAt() != null ? commitment.getCreatedAt().toLocalDateTime() : null)
+                .build();
     }
 }

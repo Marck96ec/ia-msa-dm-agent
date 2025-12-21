@@ -564,6 +564,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/GiftSummaryResponse'
 
+  /api/v1/events/{eventSlug}/gifts/reservations/report:
+    get:
+      tags:
+        - Gifts
+      summary: Reporte de regalos reservados o completados
+      description: Lista los regalos con estado reservado o completado junto a la persona que los apartó.
+      operationId: getGiftReservationReport
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reporte generado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GiftReservationReportResponse'
+
   /api/v1/gifts/{giftId}:
     get:
       tags:
@@ -1491,6 +1512,58 @@ components:
         coveragePercentage:
           type: number
           format: double
+
+    GiftReservationReportResponse:
+      type: object
+      properties:
+        eventId:
+          type: integer
+          format: int64
+        eventSlug:
+          type: string
+        eventName:
+          type: string
+        totalRecords:
+          type: integer
+        generatedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GiftReservationReportItem'
+      required: [eventId, eventSlug, eventName, totalRecords, generatedAt, items]
+
+    GiftReservationReportItem:
+      type: object
+      properties:
+        giftId:
+          type: integer
+          format: int64
+        giftName:
+          type: string
+        giftStatus:
+          type: string
+          enum: [AVAILABLE, RESERVED, PARTIALLY_FUNDED, FULLY_FUNDED, INACTIVE]
+        commitmentType:
+          type: string
+          enum: [FULL_RESERVATION, PARTIAL_CONTRIBUTION]
+        reserverUserId:
+          type: string
+        reserverName:
+          type: string
+        reserverEmail:
+          type: string
+        reserverPhone:
+          type: string
+        contributionAmount:
+          type: number
+          format: double
+        notes:
+          type: string
+        reservedAt:
+          type: string
+          format: date-time
 
     ReserveGiftRequest:
       type: object

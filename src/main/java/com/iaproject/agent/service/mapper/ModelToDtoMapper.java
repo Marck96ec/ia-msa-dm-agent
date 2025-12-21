@@ -244,6 +244,40 @@ public class ModelToDtoMapper {
                 .build();
     }
 
+    public com.iaproject.agent.model.GiftReservationReportItem toModel(com.iaproject.agent.service.dto.GiftReservationReportItem dto) {
+        if (dto == null) return null;
+        com.iaproject.agent.model.GiftReservationReportItem model = new com.iaproject.agent.model.GiftReservationReportItem();
+        model.setGiftId(dto.getGiftId());
+        model.setGiftName(dto.getGiftName());
+        model.setGiftStatus(dto.getGiftStatus() != null ? com.iaproject.agent.model.GiftReservationReportItem.GiftStatusEnum.valueOf(dto.getGiftStatus().name()) : null);
+        model.setCommitmentType(dto.getCommitmentType() != null ? com.iaproject.agent.model.GiftReservationReportItem.CommitmentTypeEnum.valueOf(dto.getCommitmentType().name()) : null);
+        model.setReserverUserId(dto.getReserverUserId());
+        model.setReserverName(dto.getReserverName());
+        model.setReserverEmail(dto.getReserverEmail());
+        model.setReserverPhone(dto.getReserverPhone());
+        model.setContributionAmount(dto.getContributionAmount() != null ? dto.getContributionAmount().doubleValue() : null);
+        model.setNotes(dto.getNotes());
+        model.setReservedAt(dto.getReservedAt());
+        return model;
+    }
+
+    public List<com.iaproject.agent.model.GiftReservationReportItem> toModelGiftReservationItems(List<com.iaproject.agent.service.dto.GiftReservationReportItem> dtos) {
+        if (dtos == null) return null;
+        return dtos.stream().map(this::toModel).collect(Collectors.toList());
+    }
+
+    public com.iaproject.agent.model.GiftReservationReportResponse toModel(com.iaproject.agent.service.dto.GiftReservationReportResponse dto) {
+        if (dto == null) return null;
+        com.iaproject.agent.model.GiftReservationReportResponse model = new com.iaproject.agent.model.GiftReservationReportResponse();
+        model.setEventId(dto.getEventId());
+        model.setEventSlug(dto.getEventSlug());
+        model.setEventName(dto.getEventName());
+        model.setTotalRecords(dto.getTotalRecords());
+        model.setGeneratedAt(dto.getGeneratedAt());
+        model.setItems(toModelGiftReservationItems(dto.getItems()));
+        return model;
+    }
+
     public com.iaproject.agent.service.dto.ContributeGiftRequest toServiceDto(com.iaproject.agent.model.ContributeGiftRequest model) {
         if (model == null) return null;
         return com.iaproject.agent.service.dto.ContributeGiftRequest.builder()
