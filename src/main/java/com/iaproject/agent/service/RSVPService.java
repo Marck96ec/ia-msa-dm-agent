@@ -4,6 +4,7 @@ import com.iaproject.agent.domain.Event;
 import com.iaproject.agent.domain.RSVP;
 import com.iaproject.agent.domain.enums.RSVPStatus;
 import com.iaproject.agent.repository.RSVPRepository;
+import com.iaproject.agent.service.dto.AttendeeSummaryResponse;
 import com.iaproject.agent.service.dto.RSVPListResponse;
 import com.iaproject.agent.service.dto.RSVPRequest;
 import com.iaproject.agent.service.dto.RSVPResponse;
@@ -13,7 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Servicio para gestionar confirmaciones de asistencia (RSVPs).
@@ -134,6 +137,33 @@ public class RSVPService {
     public List<RSVPResponse> getAttendeesBySlug(String eventSlug) {
         Event event = eventService.getEventEntityBySlug(eventSlug);
         return getAttendees(event.getId());
+    }
+
+    /**
+     * Obtiene un resumen de asistentes confirmados y total de personas con acompañantes.
+     */
+    @Transactional(readOnly = true)
+    public AttendeeSummaryResponse getAttendeeSummaryBySlug(String eventSlug) {
+        Event event = eventService.getEventEntityBySlug(eventSlug);
+        List<RSVP> confirmed = rsvpRepository.findByEventAndStatus(event, RSVPStatus.CONFIRMED);
+
+        List<RSVPResponse> attendees = confirmed.stream()
+                .map(eventMapper::toRSVPResponse)
+                .collect(Collectors.toList());
+
+        int totalGuests = confirmed.stream()
+                .mapToInt(r -> r.getGuestsCount() != null ? r.getGuestsCount() : 0)
+                .sum();
+
+        return AttendeeSummaryResponse.builder()
+                .eventId(event.getId())
+                .eventSlug(event.getSlug())
+                .eventName(event.getName())
+                .totalConfirmed(attendees.size())
+                .totalGuests(totalGuests)
+                .generatedAt(LocalDateTime.now())
+                .attendees(attendees)
+                .build();
     }
 
     /**

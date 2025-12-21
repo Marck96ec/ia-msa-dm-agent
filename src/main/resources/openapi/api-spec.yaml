@@ -469,6 +469,27 @@ paths:
                 items:
                   $ref: '#/components/schemas/RSVPResponse'
 
+  /api/v1/events/{eventSlug}/attendees/summary:
+    get:
+      tags:
+        - RSVP
+      summary: Resumen de asistentes confirmados
+      description: Lista de asistentes confirmados con el total de personas (incluyendo acompañantes).
+      operationId: getAttendeeSummary
+      parameters:
+        - name: eventSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resumen de asistentes confirmados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendeeSummaryResponse'
+
   /api/v1/events/{eventSlug}/rsvps:
     get:
       tags:
@@ -1564,6 +1585,29 @@ components:
         reservedAt:
           type: string
           format: date-time
+
+    AttendeeSummaryResponse:
+      type: object
+      properties:
+        eventId:
+          type: integer
+          format: int64
+        eventSlug:
+          type: string
+        eventName:
+          type: string
+        totalConfirmed:
+          type: integer
+        totalGuests:
+          type: integer
+        generatedAt:
+          type: string
+          format: date-time
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/RSVPResponse'
+      required: [eventId, eventSlug, eventName, totalConfirmed, totalGuests, generatedAt, attendees]
 
     ReserveGiftRequest:
       type: object

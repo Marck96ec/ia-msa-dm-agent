@@ -1,6 +1,7 @@
 package com.iaproject.agent.controller;
 
 import com.iaproject.agent.api.RsvpApi;
+import com.iaproject.agent.model.AttendeeSummaryResponse;
 import com.iaproject.agent.model.RSVPListResponse;
 import com.iaproject.agent.model.RSVPRequest;
 import com.iaproject.agent.model.RSVPResponse;
@@ -55,6 +56,13 @@ public class RSVPController implements RsvpApi {
         log.info("GET /api/v1/events/{}/attendees", eventSlug);
         List<com.iaproject.agent.service.dto.RSVPResponse> dtos = rsvpService.getAttendeesBySlug(eventSlug);
         return ResponseEntity.ok(mapper.toModelRSVPList(dtos));
+    }
+
+    @Override
+    public ResponseEntity<AttendeeSummaryResponse> getAttendeeSummary(String eventSlug) {
+        log.info("GET /api/v1/events/{}/attendees/summary", eventSlug);
+        com.iaproject.agent.service.dto.AttendeeSummaryResponse dto = rsvpService.getAttendeeSummaryBySlug(eventSlug);
+        return ResponseEntity.ok(mapper.toModel(dto));
     }
 
     @Override

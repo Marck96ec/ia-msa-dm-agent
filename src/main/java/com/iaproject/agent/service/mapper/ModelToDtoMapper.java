@@ -157,6 +157,19 @@ public class ModelToDtoMapper {
         return model;
     }
 
+    public com.iaproject.agent.model.AttendeeSummaryResponse toModel(com.iaproject.agent.service.dto.AttendeeSummaryResponse dto) {
+        if (dto == null) return null;
+        com.iaproject.agent.model.AttendeeSummaryResponse model = new com.iaproject.agent.model.AttendeeSummaryResponse();
+        model.setEventId(dto.getEventId());
+        model.setEventSlug(dto.getEventSlug());
+        model.setEventName(dto.getEventName());
+        model.setTotalConfirmed(dto.getTotalConfirmed());
+        model.setTotalGuests(dto.getTotalGuests());
+        model.setGeneratedAt(dto.getGeneratedAt());
+        model.setAttendees(toModelRSVPList(dto.getAttendees()));
+        return model;
+    }
+
     // ============================================================================
     // GIFTS
     // ============================================================================
