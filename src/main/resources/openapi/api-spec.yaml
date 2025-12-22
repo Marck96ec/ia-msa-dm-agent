@@ -1496,6 +1496,11 @@ components:
           format: double
         commitmentCount:
           type: integer
+        reserverName:
+          type: string
+        reservedAt:
+          type: string
+          format: date-time
         createdAt:
           type: string
           format: date-time

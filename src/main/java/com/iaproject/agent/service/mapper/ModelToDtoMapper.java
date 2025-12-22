@@ -221,6 +221,8 @@ public class ModelToDtoMapper {
         model.setCurrentFunding(dto.getCurrentFunding() != null ? dto.getCurrentFunding().doubleValue() : null);
         model.setFundingPercentage(dto.getFundingPercentage() != null ? dto.getFundingPercentage().doubleValue() : null);
         model.setCommitmentCount(dto.getCommitmentCount());
+        model.setReserverName(dto.getReserverName());
+        model.setReservedAt(dto.getReservedAt());
         model.setCreatedAt(dto.getCreatedAt());
         model.setUpdatedAt(dto.getUpdatedAt());
         return model;

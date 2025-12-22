@@ -35,4 +35,6 @@ public class GiftResponse {
     private Integer commitmentCount; // Cantidad de personas que aportaron/reservaron
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String reserverName;
+    private LocalDateTime reservedAt;
 }

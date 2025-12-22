@@ -333,8 +333,16 @@ public class GiftService {
     private GiftResponse toGiftResponseWithCalculations(Gift gift) {
         BigDecimal currentFunding = commitmentRepository.sumActiveContributions(gift.getId());
         Integer commitmentCount = (int) commitmentRepository.countByGiftAndIsActiveTrue(gift);
-        
-        return eventMapper.toGiftResponse(gift, currentFunding, commitmentCount);
+        GiftCommitment latestCommitment = null;
+        if (gift.getStatus() == GiftStatus.RESERVED
+                || gift.getStatus() == GiftStatus.PARTIALLY_FUNDED
+                || gift.getStatus() == GiftStatus.FULLY_FUNDED) {
+            latestCommitment = commitmentRepository
+                    .findTopByGiftAndIsActiveTrueOrderByCreatedAtDesc(gift)
+                    .orElse(null);
+        }
+
+        return eventMapper.toGiftResponse(gift, currentFunding, commitmentCount, latestCommitment);
     }
 
     private GiftReservationReportItem toReservationReportItem(GiftCommitment commitment) {

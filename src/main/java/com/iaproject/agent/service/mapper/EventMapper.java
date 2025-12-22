@@ -56,7 +56,8 @@ public class EventMapper {
                 .build();
     }
 
-    public GiftResponse toGiftResponse(Gift gift, java.math.BigDecimal currentFunding, Integer commitmentCount) {
+    public GiftResponse toGiftResponse(Gift gift, java.math.BigDecimal currentFunding, Integer commitmentCount,
+                                       GiftCommitment latestCommitment) {
         java.math.BigDecimal fundingPercentage = null;
         if (gift.getPrice() != null && gift.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0) {
             fundingPercentage = currentFunding
@@ -82,6 +83,8 @@ public class EventMapper {
                 .commitmentCount(commitmentCount)
                 .createdAt(toLocalDateTime(gift.getCreatedAt()))
                 .updatedAt(toLocalDateTime(gift.getUpdatedAt()))
+                .reserverName(latestCommitment != null ? latestCommitment.getGuestName() : null)
+                .reservedAt(latestCommitment != null ? toLocalDateTime(latestCommitment.getCreatedAt()) : null)
                 .build();
     }
 

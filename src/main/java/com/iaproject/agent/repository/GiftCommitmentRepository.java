@@ -72,6 +72,11 @@ public interface GiftCommitmentRepository extends JpaRepository<GiftCommitment, 
     long countByGiftAndIsActiveTrue(Gift gift);
 
     /**
+     * Obtiene el compromiso activo mA-as reciente de un regalo.
+     */
+    Optional<GiftCommitment> findTopByGiftAndIsActiveTrueOrderByCreatedAtDesc(Gift gift);
+
+    /**
      * Obtiene compromisos activos para regalos con estado reservado o completado en un evento.
      *
      * @param eventSlug slug del evento
