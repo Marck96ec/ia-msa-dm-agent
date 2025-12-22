@@ -4,19 +4,20 @@ import com.iaproject.agent.domain.ConversationHistory;
 import com.iaproject.agent.domain.UserProfile;
 import com.iaproject.agent.domain.enums.*;
 import com.iaproject.agent.model.ChatRequest;
+import com.iaproject.agent.model.ChatRequestMetadata;
 import com.iaproject.agent.service.dto.GuardrailEvaluationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests unitarios para GuardrailPolicyService.
@@ -28,6 +29,9 @@ class GuardrailPolicyServiceTest {
 
     @InjectMocks
     private GuardrailPolicyService guardrailPolicyService;
+
+    @Mock(lenient = true)
+    private AllowedDomainService allowedDomainService;
 
     private ChatRequest request;
     private UserProfile profile;
@@ -44,6 +48,7 @@ class GuardrailPolicyServiceTest {
                 .emojiPreference(EmojiPreference.LIGHT)
                 .build();
         history = List.of();
+        when(allowedDomainService.getAllowedKeywords()).thenReturn(List.of("baby", "shower", "baby-shower"));
     }
 
     @Test
@@ -127,9 +132,9 @@ class GuardrailPolicyServiceTest {
     void shouldRedirectOutOfScopeMessage() {
         // Given
         request.setMessage("¿Cuál es la capital de Francia?");
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("mode", "EVENT");
-        metadata.put("domainId", "baby-shower");
+        ChatRequestMetadata metadata = new ChatRequestMetadata()
+                .mode(ChatRequestMetadata.ModeEnum.EVENT)
+                .domainId("baby-shower");
         request.setMetadata(metadata);
 
         // When
@@ -138,8 +143,8 @@ class GuardrailPolicyServiceTest {
         // Then
         assertThat(result.getAction()).isEqualTo(GuardrailAction.REDIRECT);
         assertThat(result.getReason()).isEqualTo(GuardrailReason.OUT_OF_SCOPE);
-        assertThat(result.getPredefinedResponse()).contains("baby shower");
-        assertThat(result.getQuickReplies()).contains("Ideas para juegos");
+        assertThat(result.getPredefinedResponse()).contains("baby-shower");
+        assertThat(result.getQuickReplies()).contains("Ver temas disponibles");
     }
 
     @Test
@@ -147,9 +152,9 @@ class GuardrailPolicyServiceTest {
     void shouldAllowInScopeMessage() {
         // Given
         request.setMessage("¿Qué juegos puedo hacer en mi baby shower?");
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("mode", "EVENT");
-        metadata.put("domainId", "baby-shower");
+        ChatRequestMetadata metadata = new ChatRequestMetadata()
+                .mode(ChatRequestMetadata.ModeEnum.EVENT)
+                .domainId("baby-shower");
         request.setMetadata(metadata);
 
         // When
@@ -165,7 +170,7 @@ class GuardrailPolicyServiceTest {
     void shouldNotValidateScopeWithoutEventMode() {
         // Given
         request.setMessage("¿Cuál es la capital de Francia?");
-        request.setMetadata(new HashMap<>());
+        request.setMetadata(new ChatRequestMetadata());
 
         // When
         GuardrailEvaluationResult result = guardrailPolicyService.evaluate(request, profile, history);
@@ -194,8 +199,8 @@ class GuardrailPolicyServiceTest {
     void shouldAllowMessageWithValidDomainKeyword() {
         // Given
         request.setMessage("Necesito ideas de decoración para el evento del baby shower");
-        Map<String, Object> metadata = new HashMap<>();
-        metadata.put("mode", "EVENT");
+        ChatRequestMetadata metadata = new ChatRequestMetadata()
+                .mode(ChatRequestMetadata.ModeEnum.EVENT);
         request.setMetadata(metadata);
 
         // When

@@ -1,7 +1,7 @@
 package com.iaproject.agent.service;
 
-import com.iaproject.agent.dto.ChatRequest;
-import com.iaproject.agent.dto.ChatResponse;
+import com.iaproject.agent.model.ChatRequest;
+import com.iaproject.agent.model.ChatResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,11 +31,10 @@ class ChatServiceTest {
 
     @Test
     void testChatRequestBuilder() {
-        ChatRequest request = ChatRequest.builder()
+        ChatRequest request = new ChatRequest()
                 .message("Test message")
                 .temperature(0.7)
-                .maxTokens(100)
-                .build();
+                .maxTokens(100);
 
         assertThat(request.getMessage()).isEqualTo("Test message");
         assertThat(request.getTemperature()).isEqualTo(0.7);
